@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>orbit: a glance example scene</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0d1117; color: #c9d1d9; font: 14px/1.4 ui-sans-serif, system-ui, sans-serif; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  #hud { position: fixed; left: 16px; top: 12px; letter-spacing: .02em; }
+  #hud b { color: #f0f6fc; font-weight: 600; }
+  #panel { position: fixed; right: 16px; top: 12px; display: flex; gap: 8px; align-items: center; }
+  #panel input, #panel select, #panel button { font: inherit; background: #161b22; color: inherit; border: 1px solid #30363d; border-radius: 6px; padding: 4px 8px; }
+  #hidden { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud"><b id="title">orbit</b> &middot; t = <span id="t">0.00</span> s &middot; <span id="count">0</span> bodies</div>
+<div id="panel">
+  <input id="name" placeholder="title" size="10">
+  <select id="palette"><option value="cool">cool</option><option value="warm">warm</option></select>
+  <label><input type="checkbox" id="trails"> trails</label>
+  <button id="export">Export JSON</button>
+</div>
+<div id="hidden"><input type="checkbox" id="debug"></div>
+<script>
+// A deterministic scene: the frame at time t depends only on t, so ?t=2.5 always draws the same picture.
+const q = new URLSearchParams(location.search);
+const t0 = Number(q.get('t') || 0);
+const N = Number(q.get('n') || 24);
+const c = document.getElementById('c'), g = c.getContext('2d');
+const palettes = { cool: ['#58a6ff', '#79c0ff', '#a5d6ff', '#3fb950'], warm: ['#f0883e', '#ffa657', '#ff7b72', '#d29922'] };
+let start = performance.now();
+document.getElementById('count').textContent = N;
+document.getElementById('name').addEventListener('input', e => { document.getElementById('title').textContent = e.target.value || 'orbit'; });
+window.sceneReady = false;
+
+function draw(t) {
+  const w = c.width = innerWidth * devicePixelRatio, h = c.height = innerHeight * devicePixelRatio;
+  const cx = w / 2, cy = h / 2, r0 = Math.min(w, h) * 0.08;
+  const pal = palettes[document.getElementById('palette').value];
+  g.fillStyle = document.getElementById('trails').checked ? 'rgba(13,17,23,0.25)' : '#0d1117';
+  g.fillRect(0, 0, w, h);
+  g.strokeStyle = '#21262d'; g.lineWidth = devicePixelRatio;
+  for (let k = 1; k <= 4; k++) { g.beginPath(); g.arc(cx, cy, r0 * k * 1.1, 0, Math.PI * 2); g.stroke(); }
+  g.fillStyle = '#f0f6fc'; g.beginPath(); g.arc(cx, cy, r0 * 0.35, 0, Math.PI * 2); g.fill();
+  for (let i = 0; i < N; i++) {
+    const ring = 1 + (i % 4), speed = 0.9 / ring, phase = i * 2.399;
+    const a = phase + t * speed * Math.PI;
+    const x = cx + Math.cos(a) * r0 * ring * 1.1, y = cy + Math.sin(a) * r0 * ring * 1.1;
+    g.fillStyle = pal[i % pal.length];
+    g.beginPath(); g.arc(x, y, r0 * (0.06 + 0.03 * (i % 3)), 0, Math.PI * 2); g.fill();
+  }
+  document.getElementById('t').textContent = t.toFixed(2);
+}
+
+// Exposed for `glance measure --fn stepScene`: one synchronous frame of work.
+window.stepScene = () => draw(t0 + (performance.now() - start) / 1000);
+
+function loop() { window.stepScene(); requestAnimationFrame(loop); }
+draw(t0);
+setTimeout(() => { window.sceneReady = true; }, 300);
+// With ?t= the page holds that exact frame (what `glance shot --t` wants); without it, it animates.
+if (!q.has('t')) { start = performance.now(); requestAnimationFrame(loop); }
+else window.stepScene = () => draw(t0);
+for (const id of ['palette', 'trails']) document.getElementById(id).addEventListener('change', () => { if (q.has('t')) draw(t0); });
+
+document.getElementById('export').addEventListener('click', () => {
+  const data = { scene: 'orbit', t: t0, bodies: N, title: document.getElementById('title').textContent, palette: document.getElementById('palette').value, trails: document.getElementById('trails').checked, debug: document.getElementById('debug').checked };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  a.download = 'orbit-scene.json';
+  document.body.appendChild(a); a.click(); a.remove();
+});
+</script>
+</body>
+</html>

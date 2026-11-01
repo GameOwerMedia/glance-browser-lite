@@ -1,0 +1,13 @@
+{
+  "name": "glance",
+  "version": "0.1.0",
+  "description": "One shared, hidden GPU browser for every Claude Code agent: screenshots, animation frames, frame-time statistics and downloads through a job queue.",
+  "author": {
+    "name": "OverJK",
+    "url": "https://github.com/GameOwerMedia"
+  },
+  "homepage": "https://github.com/GameOwerMedia/glance-browser-lite",
+  "repository": "https://github.com/GameOwerMedia/glance-browser-lite",
+  "license": "MIT",
+  "keywords": ["screenshot", "browser", "playwright", "chromium", "frame-time", "webgl", "webgpu", "multi-agent", "queue"]
+}

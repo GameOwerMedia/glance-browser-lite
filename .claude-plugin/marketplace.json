@@ -1,0 +1,23 @@
+{
+  "name": "glance",
+  "owner": {
+    "name": "OverJK",
+    "url": "https://github.com/GameOwerMedia"
+  },
+  "metadata": {
+    "description": "glance: one shared hidden GPU browser for every Claude Code agent.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "glance",
+      "source": "./",
+      "description": "One shared, hidden GPU browser for every Claude Code agent: screenshots, animation frames, frame-time statistics and downloads through a job queue.",
+      "version": "0.1.0",
+      "author": { "name": "OverJK" },
+      "license": "MIT",
+      "category": "development",
+      "keywords": ["screenshot", "browser", "playwright", "frame-time", "multi-agent"]
+    }
+  ]
+}
